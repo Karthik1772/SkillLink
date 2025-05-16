@@ -40,10 +40,10 @@ class _JloginState extends State<Jlogin> {
                 ),
                 const SizedBox(height: 10),
                 CustomTextField(
-                  fillColor: AppColors.white,
                   controller: _email,
                   keyboardType: TextInputType.name,
                   hint: 'example@example.com',
+                  fillColor: AppColors.white,
                   textcolor: AppColors.blue,
                   focused: AppColors.blue,
                   hinttextcolor: AppColors.black,
