@@ -1,448 +1,515 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:skilllink/core/common/custom_jobcard.dart';
+import 'package:skilllink/core/themes/app_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// Mock data for job cards (replace with your actual data source)
-List<Map<String, String>> _jobList = [
-  {
-    'title': 'Software Engineer',
-    'company': 'Tech Innovators Inc.',
-    'location': 'San Francisco, CA',
-    'salary': '\$120,000 - \$150,000',
-    'tags': 'Full-time, Engineering, Remote',
-    'image': 'https://via.placeholder.com/150', // Replace with actual image URLs
-  },
-  {
-    'title': 'Data Scientist',
-    'company': 'DataWise Solutions',
-    'location': 'New York, NY',
-    'salary': '\$110,000 - \$140,000',
-    'tags': 'Full-time, Data Science, On-site',
-    'image': 'https://via.placeholder.com/150',
-  },
-  {
-    'title': 'UX/UI Designer',
-    'company': 'Creative Designs Co.',
-    'location': 'Los Angeles, CA',
-    'salary': '\$90,000 - \$120,000',
-    'tags': 'Contract, Design, Remote',
-    'image': 'https://via.placeholder.com/150',
-  },
-  {
-    'title': 'Product Manager',
-    'company': 'Global Corp',
-    'location': 'Chicago, IL',
-    'salary': '\$130,000 - \$160,000',
-    'tags': 'Full-time, Product, Hybrid',
-    'image': 'https://via.placeholder.com/150',
-  },
-  {
-    'title': 'Frontend Developer',
-    'company': 'Web Wizards',
-    'location': 'Austin, TX',
-    'salary': '\$100,000 - \$130,000',
-    'tags': 'Full-time, Web Development, Remote',
-    'image': 'https://via.placeholder.com/150',
-  },
-];
+class Job {
+  final String title;
+  final String companyName;
+  final String location;
+  final String salary;
+  final DateTime postedDate;
+  final List<String> jobTypes;
+  final String shortDescription;
+  final String companyLogoUrl;
+
+  Job({
+    required this.title,
+    required this.companyName,
+    required this.location,
+    required this.salary,
+    required this.postedDate,
+    required this.jobTypes,
+    required this.shortDescription,
+    required this.companyLogoUrl,
+  });
+
+  // You might still need these if you decide to combine with file storage later
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'companyName': companyName,
+      'location': location,
+      'salary': salary,
+      'postedDate': postedDate.toIso8601String(),
+      'jobTypes': jobTypes,
+      'shortDescription': shortDescription,
+      'companyLogoUrl': companyLogoUrl,
+    };
+  }
+
+  factory Job.fromJson(Map<String, dynamic> json) {
+    return Job(
+      title: json['title'],
+      companyName: json['companyName'],
+      location: json['location'],
+      salary: json['salary'],
+      postedDate: DateTime.parse(json['postedDate']),
+      jobTypes: List<String>.from(json['jobTypes']),
+      shortDescription: json['shortDescription'],
+      companyLogoUrl: json['companyLogoUrl'],
+    );
+  }
+}
 
 class Ehome extends StatefulWidget {
-  const Ehome({super.key});
+  const Ehome({Key? key}) : super(key: key);
 
   @override
   State<Ehome> createState() => _EhomeState();
 }
 
 class _EhomeState extends State<Ehome> {
-  @override
-  Widget build(BuildContext context) {
-    // Define the colors and text styles.  Using a separate class is good for
-    final AppColors appColors = AppColors();
-    final TextStyles textStyles = TextStyles();
+  List<Job> _postedJobs = [];
 
-    return Scaffold(
-      backgroundColor: appColors.background,
-      // Use a custom AppBar for more flexibility
-      appBar: CustomAppBar(
-        title: 'Find Your Dream Job',
-        colors: appColors,
-        textStyles: textStyles,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Added Buttons here
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // Handle Explore Jobs
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Explore Jobs'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Handle Apply for Jobs
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: appColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Apply for Jobs'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _jobList.length,
-                itemBuilder: (context, index) {
-                  final job = _jobList[index];
-                  return JobCard(job: job, colors: appColors, textStyles: textStyles);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(colors: appColors),
-    );
-  }
-}
-
-//Custom App bar
-class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final AppColors colors;
-  final TextStyles textStyles;
-
-  const CustomAppBar({super.key, required this.title, required this.colors, required this.textStyles});
-
-  @override
-  Size get preferredSize => const Size.fromHeight(60.0); // Set the preferred height
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: colors.primary,
-      title: Text(
-        title,
-        style: textStyles.appBarTitle,
-      ),
-      centerTitle: true, // Center the title
-      elevation: 0, // Remove shadow for a cleaner look
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.settings, color: Colors.white),
-          onPressed: () {
-            // Navigate to the settings page
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsPage()),
-            );
-          },
-        ),
-      ],
-    );
-  }
-}
-
-//Custom Bottom Navigation Bar
-class CustomBottomNavigationBar extends StatelessWidget {
-  final AppColors colors;
-
-  const CustomBottomNavigationBar({super.key, required this.colors});
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: colors.bottomNavBackground,
-      selectedItemColor: colors.bottomNavSelected,
-      unselectedItemColor: colors.bottomNavUnselected,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.search),
-          label: 'Search',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
-      onTap: (index) {
-        // Handle navigation based on the selected item
-        if (index == 2) { // Profile
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ProfilePage()),
-          );
-        }
-      },
-    );
-  }
-}
-
-// Job Card Widget
-class JobCard extends StatelessWidget {
-  final Map<String, String> job;
-  final AppColors colors;
-  final TextStyles textStyles;
-
-  const JobCard({super.key, required this.job, required this.colors, required this.textStyles});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: colors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Job Image
-            Container(
-              width: double.infinity,
-              height: 150,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: NetworkImage(job['image'] ?? 'https://via.placeholder.com/150'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Job Details
-            Text(
-              job['title'] ?? 'Title N/A',
-              style: textStyles.jobTitle.copyWith(
-                fontWeight: FontWeight.w600,
-                fontSize: 22,
-              ),
-            ),
-            Text(
-              job['company'] ?? 'Company N/A',
-              style: textStyles.jobCompany.copyWith(
-                color: colors.primary,
-                fontWeight: FontWeight.w500,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 18, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  job['location'] ?? 'Location N/A',
-                  style: textStyles.jobLocation.copyWith(fontSize: 16),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              job['salary'] ?? 'Salary N/A',
-              style: textStyles.jobSalary.copyWith(
-                color: Colors.green[700],
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Tags
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: (job['tags'] ?? '').split(', ').map((tag) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: colors.tagBackground,
-                  ),
-                  child: Text(
-                    tag.trim(),
-                    style: textStyles.jobTag.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Settings Page (Placeholder)
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: const Center(
-        child: Text('Settings Page Content'),
-      ),
-    );
-  }
-}
-
-// Profile Page (Placeholder)
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: const Center(
-        child: Text('Profile Page Content'),
-      ),
-    );
-  }
-}
-
-// Custom color palette for the app.
-class AppColors {
-  final Color primary = const Color(0xFF007BFF); // Blue
-  final Color background = const Color(0xFFF5F5F5); // Light gray
-  final Color cardBackground = Colors.white;
-  final Color tagBackground = const Color(0xFFE0E0E0); // Light gray for tags
-  final Color bottomNavBackground = Colors.white;
-  final Color bottomNavSelected = const Color(0xFF007BFF);
-  final Color bottomNavUnselected = Colors.grey;
-  final Color error = Colors.red;
-}
-
-// Custom text styles for the app.
-class TextStyles {
-  final TextStyle appBarTitle = GoogleFonts.poppins(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: Colors.white,
-  );
-  final TextStyle jobTitle = GoogleFonts.poppins(
-    fontSize: 18,
-    fontWeight: FontWeight.w500,
-    color: Colors.black,
-  );
-  final TextStyle jobCompany = GoogleFonts.poppins(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: Colors.grey[600],
-  );
-  final TextStyle jobLocation = GoogleFonts.poppins(
-    fontSize: 14,
-    fontWeight: FontWeight.w400,
-    color: Colors.grey[700],
-  );
-  final TextStyle jobSalary = GoogleFonts.poppins(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    color: Colors.green,
-  );
-  final TextStyle jobTag = GoogleFonts.poppins(
-    fontSize: 12,
-    fontWeight: FontWeight.w400,
-    color: Colors.black87,
-  );
-}
-
-// SplashScreen Widget
-class SplashScreen extends StatefulWidget {
-  final Widget? nextScreen;
-  const SplashScreen({super.key, this.nextScreen});
-
-  @override
-  _SplashScreenState createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Simulate loading
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => widget.nextScreen ?? const Ehome()),
+    _loadJobTitles(); // Load job titles on startup
+  }
+
+  // Save a list of job titles to shared preferences
+  Future<void> _saveJobTitles(List<String> jobTitles) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('jobTitles', jobTitles);
+    _showSnackBar('Job titles saved!');
+  }
+
+  // Load the list of job titles from shared preferences
+  Future<void> _loadJobTitles() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? savedTitles = prefs.getStringList('jobTitles');
+    if (savedTitles != null) {
+      // For this example, we're just showing the titles.
+      // In a real app, you'd likely need to retrieve the full
+      // Job objects from another storage mechanism based on these titles.
+      setState(() {
+        _postedJobs = savedTitles.map((title) => Job( // Creating dummy Job objects
+          title: title,
+          companyName: 'Unknown',
+          location: 'Unknown',
+          salary: 'Unknown',
+          postedDate: DateTime.now(),
+          jobTypes: [],
+          shortDescription: '...',
+          companyLogoUrl: '',
+        )).toList();
+      });
+    }
+  }
+
+  void _addJob(Job newJob) {
+    setState(() {
+      _postedJobs.insert(0, newJob);
+    });
+    // Save only the titles for this shared preferences example
+    _saveJobTitles(_postedJobs.map((job) => job.title).toList());
+    _showSnackBar('Job posted and titles saved!');
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  void _showApplyOptions() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return _JobPostingForm(onJobPosted: _addJob);
+      },
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Find Your Dream Job'),
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.blue,
+        elevation: 1.0,
+        centerTitle: true,
+      ),
+      backgroundColor: AppColors.grey,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Hello Job Seeker!',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.blue,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Explore Opportunities for Skilled Tradesmen',
+              style: TextStyle(fontSize: 18, color: Colors.black87),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                hintText:
+                    'Search for jobs, skills, or companies (e.g., Electrician, Wiring)',
+                fillColor: Colors.white,
+                hintStyle: TextStyle(color: AppColors.black),
+                prefixIcon: Icon(Icons.search, color: AppColors.blue),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.blue),
+                ),
+              ),
+              cursorColor: AppColors.black,
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              'Featured Jobs',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (_postedJobs.isEmpty)
+              const Text('No jobs posted yet.')
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: _postedJobs
+                        .map(
+                          (job) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: CustomJobCard(
+                              companyLogoUrl: job.companyLogoUrl,
+                              companyName: job.companyName,
+                              jobTitle: job.title,
+                              datePosted: _formatDate(job.postedDate),
+                              location: job.location,
+                              jobTypeOnSite: job.jobTypes.contains('On Site')
+                                  ? 'On Site'
+                                  : '',
+                              jobTypePartTime:
+                                  job.jobTypes.contains('Part Time')
+                                      ? 'Part Time'
+                                      : '',
+                              description: job.shortDescription,
+                              onTap: () {
+                                print('Tapped on ${job.title}');
+                              },
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showApplyOptions,
+        tooltip: 'Post a Job',
+        backgroundColor: AppColors.blue,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _JobPostingForm extends StatefulWidget {
+  final Function(Job) onJobPosted;
+
+  const _JobPostingForm({Key? key, required this.onJobPosted})
+      : super(key: key);
+
+  @override
+  State<_JobPostingForm> createState() => _JobPostingFormState();
+}
+
+class _JobPostingFormState extends State<_JobPostingForm> {
+  final TextEditingController _jobTitleController = TextEditingController();
+  final TextEditingController _jobDescriptionController =
+      TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _salaryController = TextEditingController();
+  final TextEditingController _companyNameController = TextEditingController();
+  final List<String> _selectedJobTypes = [];
+  final _formKey = GlobalKey<FormState>();
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  bool _validateAndSubmit() {
+    if (_formKey.currentState!.validate()) {
+      final newJob = Job(
+        title: _jobTitleController.text,
+        companyName: _companyNameController.text,
+        location: _locationController.text,
+        salary: _salaryController.text,
+        postedDate: DateTime.now(),
+        jobTypes: _selectedJobTypes.toList(),
+        shortDescription:
+            _jobDescriptionController.text, // Using full description for now
+        companyLogoUrl:
+            'https://via.placeholder.com/80/${Colors.primaries[DateTime.now().millisecond % Colors.primaries.length].value.toRadixString(16).substring(2, 8).toUpperCase()}/FFFFFF?Text=${_companyNameController.text.substring(0, 2).toUpperCase()}', // Simple dynamic placeholder
       );
+
+      widget.onJobPosted(newJob);
+      _clearForm();
+      Navigator.pop(context);
+      return true;
+    }
+    return false;
+  }
+
+  void _clearForm() {
+    _jobTitleController.clear();
+    _jobDescriptionController.clear();
+    _locationController.clear();
+    _salaryController.clear();
+    _companyNameController.clear();
+    setState(() {
+      _selectedJobTypes.clear();
     });
   }
 
   @override
+  void dispose() {
+    _jobTitleController.dispose();
+    _jobDescriptionController.dispose();
+    _locationController.dispose();
+    _salaryController.dispose();
+    _companyNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors().primary, // Use your primary color
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            //  Add a logo here
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // White indicator
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'SkillLink', // App name
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                'Post a Job',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _jobTitleController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'Job Title',
+                  fillColor: AppColors.white,
+                  hintStyle: TextStyle(color: AppColors.black),
+                  prefixIcon: Icon(Icons.title, color: AppColors.blue),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.blue),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter job title';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _companyNameController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'Company Name',
+                  fillColor: AppColors.white,
+                  hintStyle: TextStyle(color: AppColors.black),
+                  prefixIcon: Icon(Icons.business, color: AppColors.blue),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.blue),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter company name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _jobDescriptionController,
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                decoration: InputDecoration(
+                  hintText:
+                      'Job Description (e.g., Install and repair water systems...)',
+                  fillColor: AppColors.white,
+                  hintStyle: TextStyle(color: AppColors.black),
+                  prefixIcon:
+                      Icon(Icons.description, color: AppColors.blue),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.blue),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter job description';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _locationController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  hintText: 'Location (e.g., City, State)',
+                  fillColor: AppColors.white,
+                  hintStyle: TextStyle(color: AppColors.black),
+                  prefixIcon: Icon(Icons.location_on, color: AppColors.blue),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.blue),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter job location';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: _salaryController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Salary (e.g., \$20 - \$30/hour)',
+                  fillColor: AppColors.white,
+                  hintStyle: TextStyle(color: AppColors.black),
+                  prefixIcon:
+                      Icon(Icons.monetization_on, color: AppColors.blue),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.blue),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter salary';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Job Type:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _selectedJobTypes.contains('On Site'),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value!) {
+                          _selectedJobTypes.add('On Site');
+                        } else {
+                          _selectedJobTypes.remove('On Site');
+                        }
+                      });
+                    },
+                  ),
+                  const Text('On Site'),
+                  Checkbox(
+                    value: _selectedJobTypes.contains('Part Time'),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value!) {
+                          _selectedJobTypes.add('Part Time');
+                        } else {
+                          _selectedJobTypes.remove('Part Time');
+                        }
+                      });
+                    },
+                  ),
+                  const Text('Part Time'),
+                  Checkbox(
+                    value: _selectedJobTypes.contains('Remote'),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value!) {
+                          _selectedJobTypes.add('Remote');
+                        } else {
+                          _selectedJobTypes.remove('Remote');
+                        }
+                      });
+                    },
+                  ),
+                  const Text('Remote'),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _validateAndSubmit();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.blue,
+                ),
+                child: const Text(
+                  'Post Job',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SkillLink',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
-      home: const SplashScreen(nextScreen: Ehome()), // Use SplashScreen as the initial route
-    );
-  }
-}
-
-void main() {
-  runApp(const MyApp());
 }

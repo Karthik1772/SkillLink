@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:skilllink/core/common/custom_jobcard.dart';
-import 'package:skilllink/core/themes/app_colors.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class Job {
   final String title;
@@ -22,449 +21,428 @@ class Job {
     required this.shortDescription,
     required this.companyLogoUrl,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'companyName': companyName,
+      'location': location,
+      'salary': salary,
+      'postedDate': postedDate.toIso8601String(),
+      'jobTypes': jobTypes,
+      'shortDescription': shortDescription,
+      'companyLogoUrl': companyLogoUrl,
+    };
+  }
+
+  factory Job.fromJson(Map<String, dynamic> json) {
+    return Job(
+      title: json['title'],
+      companyName: json['companyName'],
+      location: json['location'],
+      salary: json['salary'],
+      postedDate: DateTime.parse(json['postedDate']),
+      jobTypes: List<String>.from(json['jobTypes']),
+      shortDescription: json['shortDescription'],
+      companyLogoUrl: json['companyLogoUrl'],
+    );
+  }
 }
 
 class Jhome extends StatefulWidget {
-  const Jhome({Key? key}) : super(key: key);
+  const Jhome({super.key});
 
   @override
   State<Jhome> createState() => _JhomeState();
 }
 
 class _JhomeState extends State<Jhome> {
-  final List<Job> _postedJobs = [
-    // Example initial job
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  // Sample data for featured jobs (replace with your actual data source)
+  final List<Job> _featuredJobs = [
     Job(
-      title: 'Plumber Needed',
-      companyName: 'Local Plumbing Co.',
-      location: 'Bengaluru, IN',
-      salary: '\$25 - \$35/hour',
-      postedDate: DateTime.now().subtract(const Duration(hours: 2)),
-      jobTypes: ['On Site', 'Full Time'],
-      shortDescription:
-          'Looking for a skilled plumber for residential repairs and installations.',
+      title: "Public Relations",
+      companyName: "Reddit",
+      location: "Sulaymaniyah",
+      salary: "\$50,000 - \$70,000",
+      postedDate: DateTime.now().subtract(const Duration(days: 5)),
+      jobTypes: ["On Site", "Part Time", "Sulaymaniyah"],
+      shortDescription: "This is a featured public relations job at Reddit.",
       companyLogoUrl:
-          'https://via.placeholder.com/80/ADD8E6/000000?Text=LP', // Placeholder logo
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-nuBzsGwqhxuMohWpYeHlzozjgdgH-rquGw&s",
     ),
     Job(
-      title: 'Electrician Apprentice',
-      companyName: 'Bright Sparks Inc.',
-      location: 'Whitefield, Bengaluru',
-      salary: '\$18 - \$22/hour',
-      postedDate: DateTime.now().subtract(const Duration(days: 1)),
-      jobTypes: ['On Site', 'Part Time'],
+      title: "Marketing Manager",
+      companyName: "Google",
+      location: "Erbil",
+      salary: "\$60,000 - \$80,000",
+      postedDate: DateTime.now().subtract(const Duration(days: 10)),
+      jobTypes: ["Remote", "Contract", "Erbil"],
       shortDescription:
-          'Seeking a motivated apprentice electrician to assist with projects.',
+          "We’re looking for someone to lead campaigns across digital platforms and increase user engagement.",
       companyLogoUrl:
-          'https://via.placeholder.com/80/FFFF00/000000?Text=BS', // Placeholder logo
+          "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
     ),
+    Job(
+      title: "Growth Hacker",
+      companyName: "Facebook",
+      location: "Baghdad",
+      salary: "\$70,000 - \$90,000",
+      postedDate: DateTime.now().subtract(const Duration(days: 15)),
+      jobTypes: ["On Site", "Full Time", "Baghdad", "Growth Hacking", "Marketing"],
+      shortDescription:
+          "We are hiring a Head of Growth to help us build an audience and expand beyond our community of early adopters.",
+      companyLogoUrl: "https://www.facebook.com/images/fb_icon_325x325.png",
+    ),
+    // Add more job data here
   ];
-
-  void _addJob(Job newJob) {
-    setState(() {
-      _postedJobs.insert(0, newJob);
-    });
-    _showSnackBar('Job posted and updated in the list!');
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-    );
-  }
-
-  void _showApplyOptions() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return _JobPostingForm(onJobPosted: _addJob);
-      },
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Find Your Dream Job'),
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.blue,
-        elevation: 1.0,
-        centerTitle: true,
-      ),
-      backgroundColor: AppColors.grey,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Hello Job Seeker!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.blue,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Explore Opportunities for Skilled Tradesmen',
-              style: TextStyle(fontSize: 18, color: Colors.black87),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              keyboardType: TextInputType.text,
-              decoration: InputDecoration(
-                hintText:
-                    'Search for jobs, skills, or companies (e.g., Electrician, Wiring)',
-                fillColor: Colors.white,
-                hintStyle: TextStyle(color: AppColors.black),
-                prefixIcon: Icon(Icons.search, color: AppColors.blue),
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.blue),
-                ),
-              ),
-              cursorColor: AppColors.black,
-            ),
-            const SizedBox(height: 30),
-            const Text(
-              'Featured Jobs',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (_postedJobs.isEmpty)
-              const Text('No jobs posted yet.')
-            else
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: _postedJobs
-                        .map(
-                          (job) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10.0),
-                            child: CustomJobCard(
-                              companyLogoUrl: job.companyLogoUrl,
-                              companyName: job.companyName,
-                              jobTitle: job.title,
-                              datePosted: _formatDate(job.postedDate),
-                              location: job.location,
-                              jobTypeOnSite: job.jobTypes.contains('On Site')
-                                  ? 'On Site'
-                                  : '',
-                              jobTypePartTime: job.jobTypes.contains('Part Time')
-                                  ? 'Part Time'
-                                  : '',
-                              description: job.shortDescription,
-                              onTap: () {
-                                print('Tapped on ${job.title}');
-                              },
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showApplyOptions,
-        tooltip: 'Post a Job',
-        backgroundColor: AppColors.blue,
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class _JobPostingForm extends StatefulWidget {
-  final Function(Job) onJobPosted;
-
-  const _JobPostingForm({Key? key, required this.onJobPosted})
-      : super(key: key);
-
-  @override
-  State<_JobPostingForm> createState() => _JobPostingFormState();
-}
-
-class _JobPostingFormState extends State<_JobPostingForm> {
-  final TextEditingController _jobTitleController = TextEditingController();
-  final TextEditingController _jobDescriptionController =
-      TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _salaryController = TextEditingController();
-  final TextEditingController _companyNameController = TextEditingController();
-  final List<String> _selectedJobTypes = [];
-  final _formKey = GlobalKey<FormState>();
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-    );
-  }
-
-  bool _validateAndSubmit() {
-    if (_formKey.currentState!.validate()) {
-      final newJob = Job(
-        title: _jobTitleController.text,
-        companyName: _companyNameController.text,
-        location: _locationController.text,
-        salary: _salaryController.text,
-        postedDate: DateTime.now(),
-        jobTypes: _selectedJobTypes.toList(),
-        shortDescription:
-            _jobDescriptionController.text, // Using full description for now
-        companyLogoUrl:
-            'https://via.placeholder.com/80/${Colors.primaries[DateTime.now().millisecond % Colors.primaries.length].value.toRadixString(16).substring(2, 8).toUpperCase()}/FFFFFF?Text=${_companyNameController.text.substring(0, 2).toUpperCase()}', // Simple dynamic placeholder
-      );
-
-      widget.onJobPosted(newJob);
-      _clearForm();
-      Navigator.pop(context);
-      return true;
-    }
-    return false;
-  }
-
-  void _clearForm() {
-    _jobTitleController.clear();
-    _jobDescriptionController.clear();
-    _locationController.clear();
-    _salaryController.clear();
-    _companyNameController.clear();
-    setState(() {
-      _selectedJobTypes.clear();
-    });
-  }
+  final PageController _pageController = PageController(viewportFraction: 0.8);
+  int _currentPage = 0;
 
   @override
   void dispose() {
-    _jobTitleController.dispose();
-    _jobDescriptionController.dispose();
-    _locationController.dispose();
-    _salaryController.dispose();
-    _companyNameController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: const Color(0xFFF9FAFB),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Job Finder',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: InkWell(
+            onTap: () {
+              _scaffoldKey.currentState?.openDrawer();
+            },
+            child: const CircleAvatar(
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=4'),
+            ),
+          ),
+        ),
       ),
-      child: SingleChildScrollView(
-        child: Form(
-          //Wrap with a form
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                'Post a Job',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Colors.blue,
               ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _jobTitleController,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: 'Job Title',
-                  fillColor: AppColors.white,
-                  hintStyle: TextStyle(color: AppColors.black),
-                  prefixIcon: Icon(Icons.title, color: AppColors.blue),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.blue),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter job title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _companyNameController,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: 'Company Name',
-                  fillColor: AppColors.white,
-                  hintStyle: TextStyle(color: AppColors.black),
-                  prefixIcon: Icon(Icons.business, color: AppColors.blue),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.blue),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter company name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _jobDescriptionController,
-                keyboardType: TextInputType.multiline,
-                maxLines: null,
-                decoration: InputDecoration(
-                  hintText:
-                      'Job Description (e.g., Install and repair water systems...)',
-                  fillColor: AppColors.white,
-                  hintStyle: TextStyle(color: AppColors.black),
-                  prefixIcon:
-                      Icon(Icons.description, color: AppColors.blue),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.blue),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter job description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _locationController,
-                keyboardType: TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: 'Location (e.g., City, State)',
-                  fillColor: AppColors.white,
-                  hintStyle: TextStyle(color: AppColors.black),
-                  prefixIcon: Icon(Icons.location_on, color: AppColors.blue),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.blue),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter job location';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _salaryController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: 'Salary (e.g., \$20 - \$30/hour)',
-                  fillColor: AppColors.white,
-                  hintStyle: TextStyle(color: AppColors.black),
-                  prefixIcon:
-                      Icon(Icons.monetization_on, color: AppColors.blue),
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.blue),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter salary';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Job Type:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Checkbox(
-                    value: _selectedJobTypes.contains('On Site'),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value!) {
-                          _selectedJobTypes.add('On Site');
-                        } else {
-                          _selectedJobTypes.remove('On Site');
-                        }
-                      });
-                    },
+                  const CircleAvatar(
+                    radius: 30,
+                    backgroundImage:
+                        NetworkImage('https://i.pravatar.cc/150?img=4'),
                   ),
-                  const Text('On Site'),
-                  Checkbox(
-                    value: _selectedJobTypes.contains('Part Time'),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value!) {
-                          _selectedJobTypes.add('Part Time');
-                        } else {
-                          _selectedJobTypes.remove('Part Time');
-                        }
-                      });
-                    },
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Sadeq Al-mehana',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const Text('Part Time'),
-                  Checkbox(
-                    value: _selectedJobTypes.contains('Remote'),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value!) {
-                          _selectedJobTypes.add('Remote');
-                        } else {
-                          _selectedJobTypes.remove('Remote');
-                        }
-                      });
-                    },
+                  const Text(
+                    'sadeq@cv.com',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
                   ),
-                  const Text('Remote'),
                 ],
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _validateAndSubmit();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.blue,
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_outline),
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.notifications_none),
+              title: const Text('Notifications'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Language'),
+              subtitle: const Text('English'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.brightness_4_outlined),
+              title: const Text('Theme'),
+              subtitle: const Text('Light'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFilterChips(),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                child: Text(
+                  "Featured Jobs",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                child: const Text(
-                  'Post Job',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
+              ),
+              SizedBox(
+                height: 250,
+                child: _buildFeaturedJobs(),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                child: Text(
+                  "Recent Jobs",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              _buildRecentJobs(),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 0,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.bookmark), label: 'Saved'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Row(
+        children: [
+          _buildChip("All", true),
+          _buildChip("Public Relations", false),
+          _buildChip("Brand Manager", false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(String label, bool selected) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        selectedColor: Colors.blue,
+        labelStyle: TextStyle(color: selected ? Colors.white : Colors.black),
+        onSelected: (_) {},
+      ),
+    );
+  }
+
+  Widget _buildFeaturedJobs() {
+    return Column(
+      children: [
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: _featuredJobs.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final job = _featuredJobs[index];
+              return _jobCard(
+                company: job.companyName,
+                date:
+                    "${job.postedDate.day} ${job.postedDate.month}, ${job.postedDate.year}",
+                position: job.title,
+                tags: job.jobTypes,
+                isFeatured: true,
+                description: job.shortDescription,
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: SmoothPageIndicator(
+            controller: _pageController,
+            count: _featuredJobs.length,
+            effect: const WormEffect(
+              activeDotColor: Colors.blue,
+              dotColor: Colors.grey,
+              radius: 8,
+              spacing: 10,
+            ),
+            onDotClicked: (index) {
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentJobs() {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      children: [
+        _jobCard(
+          company: "Reddit",
+          date: "October 9, 2022",
+          position: "Public Relations",
+          description:
+              "We are hiring a Head of Growth to help us build an audience and expand beyond our community of early adopters. This is a long description to test the overflow issue.",
+          tags: ["On Site", "Full Time", "Baghdad", "Growth Hacking", "Marketing"],
+          isFeatured: false,
+        ),
+        _jobCard(
+          company: "Reddit",
+          date: "October 9, 2022",
+          position: "Marketing Manager",
+          description:
+              "We’re looking for someone to lead campaigns across digital platforms and increase user engagement. Another long description for testing.",
+          tags: ["Remote", "Contract", "Erbil"],
+          isFeatured: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _jobCard({
+    required String company,
+    required String date,
+    required String position,
+    required List<String> tags,
+    bool isFeatured = false,
+    String? description,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), // Added vertical margin
+      child: Card(
+        color: isFeatured ? Colors.blue : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: isFeatured ? 2 : 1,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    backgroundColor: Colors.white,
+                    backgroundImage: NetworkImage(
+                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-nuBzsGwqhxuMohWpYeHlzozjgdgH-rquGw&s",
+                    ),
+                    radius: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          company,
+                          style: TextStyle(
+                            color: isFeatured ? Colors.white : Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          date,
+                          style: TextStyle(
+                              color: isFeatured ? Colors.white70 : Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.bookmark_border,
+                    color: isFeatured ? Colors.white : Colors.black,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                position,
+                style: TextStyle(
+                  color: isFeatured ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (description != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    description,
+                    style: TextStyle(
+                      color: isFeatured ? Colors.white70 : Colors.grey[700],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 3,
                   ),
                 ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: tags
+                    .map((tag) => Chip(
+                          label: Text(tag),
+                          backgroundColor: isFeatured
+                              ? Colors.white24
+                              : const Color(0xFFF0F0F0),
+                          labelStyle: TextStyle(
+                            color: isFeatured ? Colors.white : Colors.black,
+                          ),
+                        ))
+                    .toList(),
               ),
             ],
           ),
